@@ -6,10 +6,10 @@
 		"mac": "2.2081",
 		"ios": "2.2081"
 	},
-	"id": "yourname.daily-by-date",
+	"id": "kartik.daily-by-date",
 	"name": "Daily By Date",
 	"version": "v1.0.0",
-	"developer": "yourname",
+	"developer": "Kartik",
 	"description": "Enter a date and try to open that day's daily level.",
 	"tags": ["utility", "online"]
 }
