@@ -31,14 +31,22 @@ protected:
         m_mainLayer->addChild(m_status);
 
         auto openBtn = CCMenuItemSpriteExtra::create(
-            ButtonSprite::create("Open"), this, menu_selector(DatePopup::onOpen)
+            ButtonSprite::create("Open", "goldFont.fnt", "GJ_button_01.png", 0.8f),
+            this, menu_selector(DatePopup::onOpen)
         );
-        m_buttonMenu->addChildAtPosition(openBtn, Anchor::Bottom, {-45.f, 22.f});
+        m_buttonMenu->addChildAtPosition(openBtn, Anchor::Bottom, {-85.f, 22.f});
 
         auto listBtn = CCMenuItemSpriteExtra::create(
-            ButtonSprite::create("List"), this, menu_selector(DatePopup::onList)
+            ButtonSprite::create("List", "goldFont.fnt", "GJ_button_01.png", 0.8f),
+            this, menu_selector(DatePopup::onList)
         );
-        m_buttonMenu->addChildAtPosition(listBtn, Anchor::Bottom, {45.f, 22.f});
+        m_buttonMenu->addChildAtPosition(listBtn, Anchor::Bottom, {0.f, 22.f});
+
+        auto era21Btn = CCMenuItemSpriteExtra::create(
+            ButtonSprite::create("2.1", "goldFont.fnt", "GJ_button_02.png", 0.8f),
+            this, menu_selector(DatePopup::onEra21)
+        );
+        m_buttonMenu->addChildAtPosition(era21Btn, Anchor::Bottom, {85.f, 22.f});
 
         // Make sure the current daily number is available.
         auto glm = GameLevelManager::get();
@@ -100,16 +108,35 @@ protected:
         int daysAgo = 0, dailyNumber = 0;
         if (!parseDate(daysAgo, dailyNumber)) return;
 
-        // GD's past-dailies list is newest first, 10 per page, starting from yesterday.
-        // So the entry for "daysAgo" days back is at index daysAgo - 1.
+        log::info("List: date {} -> daily #{}", m_input->getString(), dailyNumber);
+        openDailyList(daysAgo);
+    }
+
+    // Opens GD's past-dailies list at the page containing the daily from `daysAgo` days back.
+    // The list is newest first, 10 per page, starting from yesterday,
+    // so the entry for "daysAgo" days back is at index daysAgo - 1.
+    void openDailyList(int daysAgo) {
         int index = daysAgo > 0 ? daysAgo - 1 : 0;
         int page = index / 10;
 
-        log::info("List: date {} -> daily #{}, opening page {}", m_input->getString(), dailyNumber, page);
+        log::info("Opening past dailies list at page {}", page);
 
         auto search = GJSearchObject::create(SearchType::DailySafe);
         search->m_page = page;
         CCDirector::get()->pushScene(CCTransitionFade::create(0.5f, LevelBrowserLayer::scene(search)));
+    }
+
+    // 2.1 era: dailies started with 2.1 (Jan 2017); 2.2 launched on 22 Dec 2023.
+    // Opens the list at the last daily before 2.2 (21 Dec 2023); page back for older ones.
+    void onEra21(CCObject*) {
+        namespace ch = std::chrono;
+        auto end = ch::sys_days{ch::year{2023} / ch::December / 21};
+        auto today = ch::floor<ch::days>(ch::system_clock::now());
+        int daysAgo = (today - end).count();
+        if (daysAgo < 1) daysAgo = 1;
+
+        m_status->setString("2.1 dailies: Jan 2017 - Dec 2023, newest first");
+        openDailyList(daysAgo);
     }
 
     void levelDownloadFinished(GJGameLevel* level) override {
