@@ -8,12 +8,14 @@ using namespace geode::prelude;
 // Popup where the player types a date (YYYY-MM-DD) and presses Go.
 // Daily number for a date = (current daily number) - (days between that date and today).
 // This relies on one daily per day with no gaps, and on the server accepting old daily numbers.
-class DatePopup : public Popup<>, public LevelDownloadDelegate {
+class DatePopup : public Popup, public LevelDownloadDelegate {
 protected:
     TextInput* m_input = nullptr;
     CCLabelBMFont* m_status = nullptr;
 
-    bool setup() override {
+    bool init() {
+        if (!Popup::init(260.f, 150.f)) return false;
+
         this->setTitle("Daily by date");
 
         m_input = TextInput::create(200.f, "YYYY-MM-DD", "bigFont.fnt");
@@ -93,7 +95,7 @@ protected:
         if (m_status) m_status->setString("Server did not return that daily");
     }
 
-    ~DatePopup() override {
+    ~DatePopup() {
         auto glm = GameLevelManager::get();
         if (glm && glm->m_levelDownloadDelegate == this) glm->m_levelDownloadDelegate = nullptr;
     }
@@ -101,7 +103,7 @@ protected:
 public:
     static DatePopup* create() {
         auto ret = new DatePopup();
-        if (ret->initAnchored(260.f, 150.f)) {
+        if (ret->init()) {
             ret->autorelease();
             return ret;
         }
